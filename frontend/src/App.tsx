@@ -1,30 +1,30 @@
-import { Container, AppBar, Toolbar, Typography } from '@mui/material';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import AuthPage from './pages/Auth/AuthPage';
 import HomePage from './pages/Home/HomePage';
 import GeneratorPage from './pages/Generator/GeneratorPage';
-import SearchPage from './pages/Search/SearchPage';
-import StatisticsPage from './pages/Statistics/StatisticsPage';
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    setIsAuthenticated(!!token);
+  }, []);
+
   return (
-    <>
-      <AppBar position="static">
-        <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            HorrorMash
-          </Typography>
-        </Toolbar>
-      </AppBar>
-      
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/generate" element={<GeneratorPage />} />
-          <Route path="/search" element={<SearchPage />} />
-          <Route path="/stats" element={<StatisticsPage />} />
-        </Routes>
-      </Container>
-    </>
+    <Routes>
+      <Route path="/auth" element={<AuthPage setIsAuthenticated={setIsAuthenticated} />} />
+      <Route 
+        path="/" 
+        element={isAuthenticated ? <HomePage /> : <Navigate to="/auth" replace />} 
+      />
+      <Route 
+        path="/generate" 
+        element={isAuthenticated ? <GeneratorPage /> : <Navigate to="/auth" replace />} 
+      />
+      {/* Autres routes */}
+    </Routes>
   );
 }
 
