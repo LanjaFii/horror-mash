@@ -11,6 +11,11 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(cors({
+  origin: 'http://localhost:5173',
+  methods: ['GET'],
+  allowedHeaders: ['Authorization', 'Content-Type']
+}));
 
 app.use('/api', mainRouter);
 

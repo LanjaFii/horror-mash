@@ -17,7 +17,12 @@ import {
 import axios from 'axios';
 import horrorMashTheme from '../../styles/theme';
 
-const RegisterForm = ({ setIsAuthenticated }: { setIsAuthenticated: (value: boolean) => void }) => {
+interface RegisterFormProps {
+  onSuccess: (token: string, userData: any) => void;
+  onError: (message: string) => void;
+}
+
+const RegisterForm = ({ onSuccess, onError }: RegisterFormProps) => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -29,14 +34,7 @@ const RegisterForm = ({ setIsAuthenticated }: { setIsAuthenticated: (value: bool
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (password !== confirmPassword) {
-      setError('Les mots de passe ne correspondent pas');
-      return;
-    }
-
     setLoading(true);
-    setError('');
     
     try {
       const response = await axios.post('http://localhost:5000/api/auth/register', { 
@@ -45,12 +43,9 @@ const RegisterForm = ({ setIsAuthenticated }: { setIsAuthenticated: (value: bool
         password 
       });
       
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-      setIsAuthenticated(true);
-      navigate('/');
-    } catch (err) {
-      setError(err.response?.data?.message || "Échec de l'inscription");
+      onSuccess(response.data.token, response.data.user);
+    } catch (error) {
+      onError(error.response?.data?.message || "Échec de l'inscription");
     } finally {
       setLoading(false);
     }

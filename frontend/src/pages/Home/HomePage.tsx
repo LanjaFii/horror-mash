@@ -34,7 +34,11 @@ interface Pitch {
   createdAt: string;
 }
 
-const HomePage = () => {
+interface HomePageProps {
+  onLogout: () => void;
+}
+
+const HomePage = ({ onLogout }: HomePageProps) => {
   const [user, setUser] = useState<any>(null);
   const [popularPitches, setPopularPitches] = useState<Pitch[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,9 +75,11 @@ const HomePage = () => {
   }, [navigate]);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    navigate('/auth');
+    try {
+      onLogout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   const handleLike = async (pitchId: string) => {
