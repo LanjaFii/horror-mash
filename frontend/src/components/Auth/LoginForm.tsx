@@ -17,18 +17,21 @@ import {
 import axios from 'axios';
 import horrorMashTheme from '../../styles/theme';
 
-const LoginForm = ({ setIsAuthenticated }: { setIsAuthenticated: (value: boolean) => void }) => {
+interface LoginFormProps {
+  onSuccess: (token: string, userData: any) => void;
+  onError: (message: string) => void;
+}
+
+const LoginForm = ({ onSuccess, onError }: LoginFormProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
     
     try {
       const response = await axios.post('http://localhost:5000/api/auth/login', { 
@@ -36,12 +39,9 @@ const LoginForm = ({ setIsAuthenticated }: { setIsAuthenticated: (value: boolean
         password 
       });
       
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-      setIsAuthenticated(true);
-      navigate('/');
-    } catch (err) {
-      setError(err.response?.data?.message || 'Échec de la connexion');
+      onSuccess(response.data.token, response.data.user);
+    } catch (error) {
+      onError(error.response?.data?.message || 'Échec de la connexion');
     } finally {
       setLoading(false);
     }

@@ -2,29 +2,55 @@ import { Request, Response } from 'express';
 import { jsPDF } from 'jspdf';
 import Pitch from '../models/Pitch';
 
-export const exportPitchToPDF = async (req: Request, res: Response): Promise<void> => {
+export const exportPitchToPDF = async (req: Request, res: Response) => {
   try {
-    const pitch = await Pitch.findById(req.params.id);
+    console.log('Début génération PDF'); // Log de débogage
     
+    const pitch = await Pitch.findById(req.params.id);
     if (!pitch) {
-      res.status(404).json({ message: 'Pitch not found' });
-      return;
+      console.log('Pitch non trouvé:', req.params.id);
+      return res.status(404).send('Pitch not found');
     }
 
     const doc = new jsPDF();
     
-    // Configuration du PDF...
-    doc.text(pitch.title, 105, 20, { align: 'center' });
-    // ... (ajoutez le reste de votre logique PDF ici)
+    // Configurer le document
+    doc.setProperties({
+      title: `Pitch HorrorMash - ${pitch.title}`,
+      creator: 'HorrorMash'
+    });
 
-    const pdfBuffer = Buffer.from(doc.output('arraybuffer'));
+    // Ajouter le contenu
+    doc.setFontSize(20);
+    doc.text(pitch.title, 105, 20, { align: 'center' });
     
+    let y = 40;
+    const addSection = (title: string, content: string) => {
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text(title + ':', 20, y);
+      doc.setFont('helvetica', 'normal');
+      const lines = doc.splitTextToSize(content, 170);
+      doc.text(lines, 30, y + 7);
+      y += lines.length * 7 + 15;
+    };
+
+    addSection('Genre', pitch.genre);
+    addSection('Personnage', pitch.character);
+    addSection('Lieu', pitch.location);
+    addSection('Menace', pitch.threat);
+    addSection('Twist final', pitch.twist);
+
+    // Générer le PDF
+    const pdfBuffer = doc.output('arraybuffer');
+    console.log('PDF généré - Taille:', pdfBuffer.byteLength); // Log de débogage
+
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename=horrormash-${pitch._id}.pdf`);
-    res.send(pdfBuffer);
+    res.send(Buffer.from(pdfBuffer));
 
   } catch (error) {
-    console.error('PDF generation error:', error);
-    res.status(500).json({ message: 'Error generating PDF', error });
+    console.error('Erreur génération PDF:', error);
+    res.status(500).send('Error generating PDF');
   }
 };

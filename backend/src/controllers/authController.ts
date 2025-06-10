@@ -30,7 +30,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     const user: IUser | null = await User.findOne({ email });
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
-      res.status(401).json({ message: 'Invalid credentials' });
+      res.status(401).json({ message: 'Reverifiez vos identifiants de connexion' });
       return;
     }
 
@@ -51,5 +51,18 @@ export const getCurrentUser = async (req: Request, res: Response): Promise<void>
     res.json(user);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching user', error });
+  }
+};
+
+
+export const verifyToken = async (req: Request, res: Response) => {
+  try {
+    const user = await User.findById((req as any).userId).select('-password');
+    if (!user) {
+      return res.status(401).json({ message: 'User not found' });
+    }
+    res.json({ user });
+  } catch (error) {
+    res.status(401).json({ message: 'Invalid token' });
   }
 };
