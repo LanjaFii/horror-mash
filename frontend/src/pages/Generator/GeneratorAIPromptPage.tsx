@@ -41,6 +41,33 @@ const GeneratorAIPromptPage = () => {
     }
   };
 
+  const exportPDF = async (pitchId: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('Authentification requise');
+      const response = await axios.get(
+        `http://localhost:5000/api/export/pdf/${pitchId}`,
+        {
+          responseType: 'blob',
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `horrormash-pitch-${pitchId}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => {
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }, 100);
+    } catch (err) {
+      setPublishError('Erreur lors de l’export PDF.');
+    }
+  };
+
   const handlePublish = async () => {
     setPublishLoading(true);
     setPublishSuccess('');
@@ -65,6 +92,8 @@ const GeneratorAIPromptPage = () => {
       );
       setPublishSuccess('Pitch publié avec succès !');
       setPublishedPitchId(response.data._id);
+      // Déclenche l'export PDF automatiquement
+      await exportPDF(response.data._id);
     } catch (err: any) {
       setPublishError(err.response?.data?.message || 'Erreur lors de la publication.');
     } finally {
