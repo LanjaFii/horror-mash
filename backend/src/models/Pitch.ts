@@ -43,7 +43,7 @@ const pitchSchema = new Schema<IPitch>({
   description: {
     type: String,
     trim: true,
-    maxlength: [500, 'La description ne peut pas dépasser 500 caractères'],
+    maxlength: [2000, 'La description ne peut pas dépasser 2000 caractères'],
     default: ''
   },
   likes: { 

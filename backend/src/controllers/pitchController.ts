@@ -3,6 +3,7 @@ import Pitch from '../models/Pitch';
 import { AuthenticatedRequest } from '../middlewares/auth';
 import { openai } from '../config/openai';
 import { generateHFPitch } from '../config/huggingface';
+import User from '../models/User';
 
 // Éléments aléatoires étendus
 const characters = [
@@ -166,5 +167,54 @@ export const generateAIPitch = async (req: Request, res: Response): Promise<void
   } catch (error) {
     console.error('Erreur Hugging Face:', error);
     res.status(500).json({ message: 'Erreur lors de la génération IA (Hugging Face).' });
+  }
+};
+
+
+export const publishAIPitch = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    console.log('--- publishAIPitch called ---');
+    const { genre, lieu, antagoniste, protagoniste, finHeureuse, pitch } = req.body;
+    console.log('Body:', req.body);
+    if (!genre || !lieu || !antagoniste || !protagoniste || typeof finHeureuse === 'undefined' || !pitch) {
+      console.log('Missing field');
+      res.status(400).json({ message: 'Tous les champs sont requis.' });
+      return;
+    }
+    if (!req.userId) {
+      console.log('No userId');
+      res.status(401).json({ message: 'Authentification requise.' });
+      return;
+    }
+    const user = await User.findById(req.userId);
+    if (!user) {
+      console.log('User not found:', req.userId);
+      res.status(404).json({ message: 'Utilisateur non trouvé.' });
+      return;
+    }
+    const title = `Pitch IA: ${protagoniste} vs ${antagoniste}`;
+    let twist = '';
+    const sentences = pitch.match(/[^.!?]+[.!?]+/g);
+    if (sentences && sentences.length > 1) {
+      twist = sentences[sentences.length - 1].trim();
+    } else {
+      twist = pitch;
+    }
+    const newPitch = new Pitch({
+      title,
+      character: protagoniste,
+      location: lieu,
+      threat: antagoniste,
+      twist,
+      genre,
+      description: pitch,
+      createdBy: user._id
+    });
+    await newPitch.save();
+    console.log('Pitch saved:', newPitch._id);
+    res.status(201).json({ ...newPitch.toObject(), ownerEmail: user.email, ownerName: user.username });
+  } catch (error) {
+    console.error('Erreur publishAIPitch:', error);
+    res.status(500).json({ message: 'Erreur lors de la publication du pitch IA.', error });
   }
 };
