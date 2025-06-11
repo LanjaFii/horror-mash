@@ -103,6 +103,20 @@ const HomePage = ({ onLogout }: HomePageProps) => {
     }
   };
 
+  // Fonction pour choisir une couleur selon l'username
+  const getAvatarColor = (username: string) => {
+    if (!username) return horrorMashTheme.palette.secondary.main;
+    const name = username.toLowerCase();
+    if (name === 'lanja') return '#FFD600'; // Jaune vif
+    if (name.startsWith('a')) return '#43A047'; // Vert foncé
+    if (name.startsWith('m')) return '#E53935'; // Rouge
+    if (name.startsWith('s')) return '#1E88E5'; // Bleu
+    if (name.startsWith('c')) return '#8E24AA'; // Violet
+    // Hash simple pour d'autres cas
+    const colors = ['#FF7043', '#26A69A', '#FFB300', '#8D6E63', '#789262'];
+    return colors[username.charCodeAt(0) % colors.length];
+  };
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
@@ -168,19 +182,35 @@ const HomePage = ({ onLogout }: HomePageProps) => {
         Pitchs Populaires
       </Typography>
       
-      <Grid container spacing={3}>
+      <Grid container spacing={3} justifyContent="center" alignItems="center" direction="column">
         {popularPitches.map((pitch) => (
-          <Grid item xs={12} sm={6} md={4} key={pitch._id}>
-            <Card sx={{ 
+          <Grid item xs={12} key={pitch._id} sx={{ display: 'flex', justifyContent: 'center' }}>
+            <Card sx={{
+              width: 700,
+              minWidth: 600,
+              maxWidth: 800,
+              margin: '0 auto',
               height: '100%',
               display: 'flex',
               flexDirection: 'column',
               borderLeft: `4px solid ${horrorMashTheme.palette.primary.main}`
             }}>
               <CardContent sx={{ flexGrow: 1 }}>
-                <Typography variant="h6" gutterBottom>
-                  {pitch.title}
-                </Typography>
+                <Box display="flex" alignItems="center" gap={2} mb={1}>
+                  {pitch.createdBy && pitch.createdBy.username && (
+                    <>
+                      <Avatar sx={{ bgcolor: getAvatarColor(pitch.createdBy.username), width: 40, height: 40, fontSize: 22 }}>
+                        {pitch.createdBy.username.charAt(0).toUpperCase()}
+                      </Avatar>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                        {pitch.createdBy.username}
+                      </Typography>
+                    </>
+                  )}
+                  <Typography variant="h6" gutterBottom sx={{ ml: pitch.createdBy?.username ? 1 : 0 }}>
+                    {pitch.title}
+                  </Typography>
+                </Box>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
                   Genre: {pitch.genre}
                 </Typography>
@@ -192,8 +222,8 @@ const HomePage = ({ onLogout }: HomePageProps) => {
                 </Typography>
               </CardContent>
               
-              <CardActions sx={{ 
-                display: 'flex', 
+              <CardActions sx={{
+                display: 'flex',
                 justifyContent: 'space-between',
                 borderTop: '1px solid rgba(0,0,0,0.1)',
                 pt: 1

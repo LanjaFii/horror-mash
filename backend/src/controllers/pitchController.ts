@@ -143,8 +143,8 @@ export const getPopularPitches = async (req: Request, res: Response) => {
   try {
     const popularPitches = await Pitch.find()
       .sort({ likes: -1 })
-      .limit(5);
-    
+      .limit(5)
+      .populate('createdBy', 'username email');
     res.json(popularPitches);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching popular pitches', error });
