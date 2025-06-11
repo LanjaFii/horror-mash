@@ -2,13 +2,13 @@ import { Router } from 'express';
 import { 
   register,
   login,
-  getCurrentUser
+  getCurrentUser,
+  verifyToken
 } from '../controllers/authController';
 import { authenticate } from '../middlewares/auth';
 
 const router = Router();
 
-// Correction des types pour les handlers
 router.post('/register', (req, res, next) => {
   register(req, res).catch(next);
 });
@@ -19,6 +19,11 @@ router.post('/login', (req, res, next) => {
 
 router.get('/me', authenticate, (req, res, next) => {
   getCurrentUser(req, res).catch(next);
+});
+
+// Route de vérification du token pour le frontend
+router.get('/verify', authenticate, (req, res) => {
+  verifyToken(req, res);
 });
 
 export default router;

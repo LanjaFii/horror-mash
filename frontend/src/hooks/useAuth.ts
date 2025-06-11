@@ -3,15 +3,26 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 const useAuth = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => !!localStorage.getItem('token'));
+  const [user, setUser] = useState<any>(() => {
+    const storedUser = localStorage.getItem('user');
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  const clearAuth = useCallback(() => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setIsAuthenticated(false);
+    setUser(null);
+  }, []);
 
   const verifyAuth = useCallback(async () => {
     const token = localStorage.getItem('token');
     if (!token) {
       setLoading(false);
+      clearAuth();
       return;
     }
 
@@ -21,19 +32,15 @@ const useAuth = () => {
       });
       setIsAuthenticated(true);
       setUser(response.data.user);
-    } catch (error) {
-      clearAuth();
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+    } catch (error: any) {
+      if (error.response && error.response.status === 401) {
+        clearAuth();
+      }
     } finally {
       setLoading(false);
     }
-  }, []);
-
-  const clearAuth = useCallback(() => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setIsAuthenticated(false);
-    setUser(null);
-  }, []);
+  }, [clearAuth]);
 
   const login = useCallback(async (token: string, userData: any) => {
     localStorage.setItem('token', token);
