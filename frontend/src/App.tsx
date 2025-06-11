@@ -3,6 +3,7 @@ import useAuth from './hooks/useAuth';
 import AuthPage from './pages/Auth/AuthPage';
 import HomePage from './pages/Home/HomePage';
 import GeneratorPage from './pages/Generator/GeneratorPage';
+import GeneratorAIPromptPage from './pages/Generator/GeneratorAIPromptPage';
 import SearchPage from './pages/Search/SearchPage';
 import StatisticsPage from './pages/Statistics/StatisticsPage';
 
@@ -31,6 +32,12 @@ const App = () => {
         path="/generate" 
         element={isAuthenticated ? 
           <GeneratorPage /> : 
+          <Navigate to="/auth" replace />} 
+      />
+      <Route 
+        path="/generate-ai" 
+        element={isAuthenticated ? 
+          <GeneratorAIPromptPage /> : 
           <Navigate to="/auth" replace />} 
       />
       <Route 

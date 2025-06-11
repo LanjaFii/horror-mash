@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import Pitch from '../models/Pitch';
 import { AuthenticatedRequest } from '../middlewares/auth';
+import { openai } from '../config/openai';
+import { generateHFPitch } from '../config/huggingface';
 
 // Éléments aléatoires étendus
 const characters = [
@@ -145,5 +147,24 @@ export const getPopularPitches = async (req: Request, res: Response) => {
     res.json(popularPitches);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching popular pitches', error });
+  }
+};
+
+
+export const generateAIPitch = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { genre, lieu, antagoniste, protagoniste, finHeureuse } = req.body;
+    if (!genre || !lieu || !antagoniste || !protagoniste || typeof finHeureuse === 'undefined') {
+      res.status(400).json({ message: 'Tous les champs sont requis.' });
+      return;
+    }
+
+    const prompt = `Dans le genre ${genre}, à ${lieu}, le tueur est ${antagoniste}, le héros est ${protagoniste}, la fin est ${finHeureuse ? 'heureuse' : 'tragique'}. Écris un pitch court (3 à 4 phrases) pour un film d'horreur en français, sans introduction ni consigne, uniquement le pitch.`;
+
+    const pitch = await generateHFPitch(prompt);
+    res.json({ pitch });
+  } catch (error) {
+    console.error('Erreur Hugging Face:', error);
+    res.status(500).json({ message: 'Erreur lors de la génération IA (Hugging Face).' });
   }
 };

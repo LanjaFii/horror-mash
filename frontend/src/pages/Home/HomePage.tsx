@@ -157,7 +157,7 @@ const HomePage = ({ onLogout }: HomePageProps) => {
           variant="contained"
           color="primary"
           startIcon={<Add />}
-          onClick={() => navigate('/generate')}
+          onClick={() => navigate('/generate-ai')}
           sx={{ mt: 2 }}
         >
           Créer un nouveau pitch
