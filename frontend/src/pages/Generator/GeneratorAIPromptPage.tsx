@@ -15,6 +15,10 @@ const GeneratorAIPromptPage = () => {
   const [pitch, setPitch] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [publishLoading, setPublishLoading] = useState(false);
+  const [publishSuccess, setPublishSuccess] = useState('');
+  const [publishError, setPublishError] = useState('');
+  const [publishedPitchId, setPublishedPitchId] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,6 +38,37 @@ const GeneratorAIPromptPage = () => {
       setError(err.response?.data?.message || 'Erreur lors de la génération du pitch.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePublish = async () => {
+    setPublishLoading(true);
+    setPublishSuccess('');
+    setPublishError('');
+    setPublishedPitchId(null);
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('Authentification requise');
+      const response = await axios.post(
+        'http://localhost:5000/api/pitches/publish-ai',
+        {
+          genre,
+          lieu,
+          antagoniste,
+          protagoniste,
+          finHeureuse: finHeureuse === 'oui',
+          pitch
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+      setPublishSuccess('Pitch publié avec succès !');
+      setPublishedPitchId(response.data._id);
+    } catch (err: any) {
+      setPublishError(err.response?.data?.message || 'Erreur lors de la publication.');
+    } finally {
+      setPublishLoading(false);
     }
   };
 
@@ -102,6 +137,18 @@ const GeneratorAIPromptPage = () => {
         <Box mt={4} p={2} bgcolor="#222" borderRadius={2}>
           <Typography variant="h6">Pitch généré :</Typography>
           <Typography>{pitch}</Typography>
+          <Button
+            variant="contained"
+            color="secondary"
+            sx={{ mt: 2 }}
+            onClick={handlePublish}
+            disabled={publishLoading}
+            fullWidth
+          >
+            {publishLoading ? <CircularProgress size={20} /> : 'Publier le pitch'}
+          </Button>
+          {publishSuccess && <Alert severity="success" sx={{ mt: 2 }}>{publishSuccess}</Alert>}
+          {publishError && <Alert severity="error" sx={{ mt: 2 }}>{publishError}</Alert>}
         </Box>
       )}
     </Box>

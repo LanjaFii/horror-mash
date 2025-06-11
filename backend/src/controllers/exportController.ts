@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { jsPDF } from 'jspdf';
 import Pitch from '../models/Pitch';
+import User from '../models/User';
 
 export const exportPitchToPDF = async (req: Request, res: Response) => {
   try {
@@ -12,18 +13,18 @@ export const exportPitchToPDF = async (req: Request, res: Response) => {
       return res.status(404).send('Pitch not found');
     }
 
+    let owner: any = null;
+    if (pitch.createdBy) {
+      owner = await User.findById(pitch.createdBy);
+    }
+
     const doc = new jsPDF();
-    
-    // Configurer le document
     doc.setProperties({
       title: `Pitch HorrorMash - ${pitch.title}`,
       creator: 'HorrorMash'
     });
-
-    // Ajouter le contenu
     doc.setFontSize(20);
     doc.text(pitch.title, 105, 20, { align: 'center' });
-    
     let y = 40;
     const addSection = (title: string, content: string) => {
       doc.setFontSize(12);
@@ -35,11 +36,24 @@ export const exportPitchToPDF = async (req: Request, res: Response) => {
       y += lines.length * 7 + 15;
     };
 
-    addSection('Genre', pitch.genre);
-    addSection('Personnage', pitch.character);
-    addSection('Lieu', pitch.location);
-    addSection('Menace', pitch.threat);
-    addSection('Twist final', pitch.twist);
+    // Si c'est un pitch IA (description non vide), on ajoute prompts + pitch + infos user
+    if (pitch.description && pitch.description.length > 0) {
+      addSection('Pitch IA généré', pitch.description);
+      addSection('Genre', pitch.genre);
+      addSection('Personnage', pitch.character);
+      addSection('Lieu', pitch.location);
+      addSection('Antagoniste', pitch.threat);
+      addSection('Twist final', pitch.twist);
+      if (owner) {
+        addSection('Propriétaire', `${owner.username} (${owner.email})`);
+      }
+    } else {
+      addSection('Genre', pitch.genre);
+      addSection('Personnage', pitch.character);
+      addSection('Lieu', pitch.location);
+      addSection('Menace', pitch.threat);
+      addSection('Twist final', pitch.twist);
+    }
 
     // Générer le PDF
     const pdfBuffer = doc.output('arraybuffer');
