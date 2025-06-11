@@ -53,8 +53,7 @@ const pitchSchema = new Schema<IPitch>({
   },
   likedBy: { 
     type: [String], 
-    default: [],
-    select: false // Masqué par défaut dans les résultats
+    default: []
   },
   createdBy: {
     type: Schema.Types.ObjectId,
