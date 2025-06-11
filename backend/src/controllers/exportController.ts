@@ -23,17 +23,36 @@ export const exportPitchToPDF = async (req: Request, res: Response) => {
       title: `Pitch HorrorMash - ${pitch.title}`,
       creator: 'HorrorMash'
     });
-    doc.setFontSize(20);
-    doc.text(pitch.title, 105, 20, { align: 'center' });
-    let y = 40;
+
+    // Style horreur : fond noir, texte rouge/orange, police monospace, titre stylé
+    // Fond noir
+    doc.setFillColor(20, 20, 20);
+    doc.rect(0, 0, 210, 297, 'F');
+
+    // Titre stylé sanglant
+    doc.setFont('courier', 'bold');
+    doc.setTextColor(255, 36, 0); // Rouge sang
+    doc.setFontSize(28);
+    doc.text(pitch.title.toUpperCase(), 105, 28, { align: 'center' });
+    // Effet goutte de sang sous le titre
+    doc.setDrawColor(255, 36, 0);
+    doc.setFillColor(255, 36, 0);
+    doc.ellipse(105, 34, 3, 6, 'FD');
+
+    let y = 50;
+    const sectionTitleColor = [255, 87, 34]; // Orange sang
+    const sectionTextColor = [255, 255, 255]; // Blanc
     const addSection = (title: string, content: string) => {
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.text(title + ':', 20, y);
-      doc.setFont('helvetica', 'normal');
+      doc.setFont('courier', 'bold');
+      doc.setFontSize(11); // plus petit
+      doc.setTextColor(sectionTitleColor[0], sectionTitleColor[1], sectionTitleColor[2]);
+      doc.text(title + ' :', 20, y);
+      doc.setFont('courier', 'normal');
+      doc.setFontSize(9); // plus petit
+      doc.setTextColor(sectionTextColor[0], sectionTextColor[1], sectionTextColor[2]);
       const lines = doc.splitTextToSize(content, 170);
-      doc.text(lines, 30, y + 7);
-      y += lines.length * 7 + 15;
+      doc.text(lines, 30, y + 5);
+      y += lines.length * 5 + 10;
     };
 
     // Si c'est un pitch IA (description non vide), on ajoute prompts + pitch + infos user
