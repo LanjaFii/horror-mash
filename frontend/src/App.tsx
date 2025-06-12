@@ -6,53 +6,36 @@ import GeneratorPage from './pages/Generator/GeneratorPage';
 import GeneratorAIPromptPage from './pages/Generator/GeneratorAIPromptPage';
 import SearchPage from './pages/Search/SearchPage';
 import StatisticsPage from './pages/Statistics/StatisticsPage';
+import AppHeader from './components/AppHeader';
+import MesPitchsPage from './pages/MesPitchsPage';
 
 const App = () => {
-  const { isAuthenticated, loading, login, logout } = useAuth();
+  const { isAuthenticated, loading, login, logout, user } = useAuth();
 
   if (loading) {
     return <div>Loading...</div>;
   }
 
   return (
-    <Routes>
-      <Route 
-        path="/auth" 
-        element={!isAuthenticated ? 
-          <AuthPage onLogin={login} /> : 
-          <Navigate to="/" replace />} 
-      />
-      <Route 
-        path="/" 
-        element={isAuthenticated ? 
-          <HomePage onLogout={logout} /> : 
-          <Navigate to="/auth" replace />} 
-      />
-      <Route 
-        path="/generate" 
-        element={isAuthenticated ? 
-          <GeneratorPage /> : 
-          <Navigate to="/auth" replace />} 
-      />
-      <Route 
-        path="/generate-ai" 
-        element={isAuthenticated ? 
-          <GeneratorAIPromptPage /> : 
-          <Navigate to="/auth" replace />} 
-      />
-      <Route 
-        path="/search" 
-        element={isAuthenticated ? 
-          <SearchPage /> : 
-          <Navigate to="/auth" replace />} 
-      />
-      <Route 
-        path="/stats" 
-        element={isAuthenticated ? 
-          <StatisticsPage /> : 
-          <Navigate to="/auth" replace />} 
-      />
-    </Routes>
+    isAuthenticated ? (
+      <>
+        <AppHeader user={user} onLogout={logout} />
+        <Routes>
+          <Route path="/" element={<HomePage onLogout={logout} />} />
+          <Route path="/generate" element={<GeneratorPage />} />
+          <Route path="/generate-ai" element={<GeneratorAIPromptPage />} />
+          <Route path="/search" element={<SearchPage />} />
+          <Route path="/stats" element={<StatisticsPage />} />
+          <Route path="/mes-pitchs" element={<MesPitchsPage />} />
+          <Route path="*" element={<HomePage onLogout={logout} />} />
+        </Routes>
+      </>
+    ) : (
+      <Routes>
+        <Route path="/auth" element={<AuthPage onLogin={login} />} />
+        <Route path="*" element={<Navigate to="/auth" replace />} />
+      </Routes>
+    )
   );
 };
 

@@ -20,6 +20,7 @@ const useAuth = () => {
 
   const verifyAuth = useCallback(async () => {
     const token = localStorage.getItem('token');
+    console.log('Token retrieved from localStorage:', token); // Log pour déboguer
     if (!token) {
       setLoading(false);
       clearAuth();
@@ -30,10 +31,12 @@ const useAuth = () => {
       const response = await axios.get('http://localhost:5000/api/auth/verify', {
         headers: { Authorization: `Bearer ${token}` }
       });
+      console.log('Auth verification response:', response.data); // Log pour déboguer
       setIsAuthenticated(true);
       setUser(response.data.user);
       localStorage.setItem('user', JSON.stringify(response.data.user));
     } catch (error: any) {
+      console.error('Auth verification error:', error); // Log pour déboguer
       if (error.response && error.response.status === 401) {
         clearAuth();
       }
