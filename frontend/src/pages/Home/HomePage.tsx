@@ -11,7 +11,17 @@ import {
   CardActions,
   Avatar,
   Divider,
-  IconButton
+  IconButton,
+  AppBar,
+  Toolbar,
+  InputBase,
+  Menu,
+  MenuItem,
+  Tooltip,
+  Select,
+  FormControl,
+  InputLabel,
+  TextField
 } from '@mui/material';
 import { 
   Logout,
@@ -19,6 +29,9 @@ import {
   Share,
   Add
 } from '@mui/icons-material';
+import SearchIcon from '@mui/icons-material/Search';
+import BarChartIcon from '@mui/icons-material/BarChart';
+import ListAltIcon from '@mui/icons-material/ListAlt';
 import axios from 'axios';
 import horrorMashTheme from '../../styles/theme';
 
@@ -42,6 +55,11 @@ const HomePage = ({ onLogout }: HomePageProps) => {
   const [user, setUser] = useState<any>(null);
   const [popularPitches, setPopularPitches] = useState<Pitch[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchAnchorEl, setSearchAnchorEl] = useState<null | HTMLElement>(null);
+  const [searchType, setSearchType] = useState<'nom' | 'dates'>('nom');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [dateStart, setDateStart] = useState('');
+  const [dateEnd, setDateEnd] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -103,6 +121,15 @@ const HomePage = ({ onLogout }: HomePageProps) => {
     }
   };
 
+  const handleSearch = () => {
+    // Redirige vers la page de recherche avec les bons paramètres
+    if (searchType === 'nom' && searchTerm) {
+      navigate(`/search?query=${encodeURIComponent(searchTerm)}`);
+    } else if (searchType === 'dates' && dateStart && dateEnd) {
+      navigate(`/search?dateStart=${dateStart}&dateEnd=${dateEnd}`);
+    }
+  };
+
   // Fonction pour choisir une couleur selon l'username
   const getAvatarColor = (username: string) => {
     if (!username) return horrorMashTheme.palette.secondary.main;
@@ -127,38 +154,6 @@ const HomePage = ({ onLogout }: HomePageProps) => {
 
   return (
     <Container maxWidth="lg">
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        py: 4
-      }}>
-        <Typography variant="h3" component="h1" sx={{ 
-          color: horrorMashTheme.palette.primary.main,
-          fontWeight: 'bold'
-        }}>
-          HorrorMash
-        </Typography>
-        
-        <Box display="flex" alignItems="center" gap={2}>
-          {user && (
-            <Avatar sx={{ bgcolor: horrorMashTheme.palette.secondary.main }}>
-              {user.username.charAt(0).toUpperCase()}
-            </Avatar>
-          )}
-          <Button
-            variant="outlined"
-            color="error"
-            startIcon={<Logout />}
-            onClick={handleLogout}
-          >
-            Déconnexion
-          </Button>
-        </Box>
-      </Box>
-
-      <Divider sx={{ my: 3 }} />
-
       <Box sx={{ mb: 4 }}>
         <Typography variant="h5" gutterBottom>
           Bienvenue{user ? `, ${user.username}` : ''} !

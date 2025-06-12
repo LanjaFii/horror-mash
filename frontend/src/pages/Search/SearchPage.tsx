@@ -30,15 +30,27 @@ const SearchPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGenre, setSelectedGenre] = useState('Tous');
   const [results, setResults] = useState<any[]>([]);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   const handleSearch = async () => {
     try {
       const response = await axios.get('http://localhost:5000/api/pitches/search', {
         params: {
           query: searchTerm,
-          genre: selectedGenre === 'Tous' ? null : selectedGenre
+          genre: selectedGenre === 'Tous' ? null : selectedGenre,
+          startDate: startDate || null,
+          endDate: endDate || null
         }
       });
+      // Ajout de logs pour diagnostiquer les requêtes et réponses
+      console.log('Requête envoyée :', {
+        query: searchTerm,
+        genre: selectedGenre === 'Tous' ? null : selectedGenre,
+        startDate,
+        endDate
+      });
+      console.log('Réponse reçue :', response.data);
       setResults(response.data);
     } catch (error) {
       console.error('Error searching pitches:', error);
@@ -75,6 +87,24 @@ const SearchPage = () => {
           </Select>
         </FormControl>
 
+        <TextField
+          label="Date de début"
+          type="date"
+          InputLabelProps={{ shrink: true }}
+          value={startDate}
+          onChange={(e) => setStartDate(e.target.value)}
+          sx={{ minWidth: 150 }}
+        />
+
+        <TextField
+          label="Date de fin"
+          type="date"
+          InputLabelProps={{ shrink: true }}
+          value={endDate}
+          onChange={(e) => setEndDate(e.target.value)}
+          sx={{ minWidth: 150 }}
+        />
+
         <Button 
           variant="contained" 
           onClick={handleSearch}
@@ -86,7 +116,7 @@ const SearchPage = () => {
 
       <Grid container spacing={3}>
         {results.map((pitch) => (
-          <Grid item xs={12} sm={6} md={4} key={pitch._id}>
+          <div key={pitch._id} style={{ width: '100%' }}>
             <Card>
               <CardContent>
                 <Typography variant="h6">{pitch.title}</Typography>
@@ -102,7 +132,7 @@ const SearchPage = () => {
                 </Box>
               </CardContent>
             </Card>
-          </Grid>
+          </div>
         ))}
       </Grid>
     </Box>
